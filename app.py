@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.abspath(
 sys.path.insert(0, PROJECT_ROOT)
 
 # Import prediction function
-from src.prediction import predict_loan
+from prediction import predict_loan
 
 
 # ==================================================
