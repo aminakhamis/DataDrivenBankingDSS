@@ -4,7 +4,7 @@ import joblib
 
 # Load trained model
 rf_model = joblib.load(
-    "models/loan_approval_model.pkl"
+    "loan_approval_model.pkl"
 )
 
 
