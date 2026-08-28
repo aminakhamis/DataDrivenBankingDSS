@@ -1,7 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-from src.prediction import predict_loan
+from prediction import predict_loan
 
 
 # ==================================================
