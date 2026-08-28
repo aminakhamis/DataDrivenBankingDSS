@@ -1,38 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-import sys
-import os
-
-
-# ==================================================
-# PROJECT PATH
-# ==================================================
-
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")
-)
-
-sys.path.insert(0, PROJECT_ROOT)
-
-
-# ==================================================
-# IMPORTS
-# ==================================================
-
-from prediction import predict_loan
-from database.database import save_application
-
-
-# ==================================================
-# DATABASE PATH
-# ==================================================
-
-DATABASE_PATH = os.path.join(
-    PROJECT_ROOT,
-    "database",
-    "loan_database.db"
-)
+from src.prediction import predict_loan
 
 
 # ==================================================
@@ -47,12 +16,152 @@ st.set_page_config(
 
 
 # ==================================================
+# DATABASE
+# ==================================================
+
+DATABASE_PATH = "database/loan_database.db"
+
+
+def create_database():
+
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS loan_applications (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            annual_income REAL,
+            monthly_income REAL,
+            credit_score REAL,
+            loan_amount REAL,
+            loan_duration REAL,
+            total_debt_to_income REAL,
+            interest_rate REAL,
+            base_interest_rate REAL,
+            monthly_payment REAL,
+            total_assets REAL,
+            net_worth REAL,
+            age REAL,
+            experience REAL,
+            credit_history REAL,
+
+            employment_status TEXT,
+            education_level TEXT,
+
+            prediction TEXT,
+            approval_probability REAL,
+
+            application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
+
+def save_application(
+    annual_income,
+    monthly_income,
+    credit_score,
+    loan_amount,
+    loan_duration,
+    total_debt_to_income,
+    interest_rate,
+    base_interest_rate,
+    monthly_payment,
+    total_assets,
+    net_worth,
+    age,
+    experience,
+    credit_history,
+    employment_status,
+    education_level,
+    prediction,
+    approval_probability
+):
+
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO loan_applications (
+            annual_income,
+            monthly_income,
+            credit_score,
+            loan_amount,
+            loan_duration,
+            total_debt_to_income,
+            interest_rate,
+            base_interest_rate,
+            monthly_payment,
+            total_assets,
+            net_worth,
+            age,
+            experience,
+            credit_history,
+            employment_status,
+            education_level,
+            prediction,
+            approval_probability
+        )
+
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        annual_income,
+        monthly_income,
+        credit_score,
+        loan_amount,
+        loan_duration,
+        total_debt_to_income,
+        interest_rate,
+        base_interest_rate,
+        monthly_payment,
+        total_assets,
+        net_worth,
+        age,
+        experience,
+        credit_history,
+        employment_status,
+        education_level,
+        prediction,
+        approval_probability
+    ))
+
+    connection.commit()
+    connection.close()
+
+
+def load_applications():
+
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    data = pd.read_sql_query(
+        """
+        SELECT *
+        FROM loan_applications
+        ORDER BY id DESC
+        """,
+        connection
+    )
+
+    connection.close()
+
+    return data
+
+
+# Create database automatically
+create_database()
+
+
+# ==================================================
 # TITLE
 # ==================================================
 
-st.title(
-    "🏦 Loan Approval Decision Support System"
-)
+st.title("🏦 Loan Approval Decision Support System")
 
 st.write(
     "Welcome to the Loan Approval Prediction System"
@@ -172,9 +281,7 @@ with col2:
 # EMPLOYMENT AND EDUCATION
 # ==================================================
 
-st.subheader(
-    "💼 Employment and Education"
-)
+st.subheader("💼 Employment and Education")
 
 col1, col2 = st.columns(2)
 
@@ -217,89 +324,87 @@ if st.button(
     use_container_width=True
 ):
 
-    # ==================================================
-    # MACHINE LEARNING PREDICTION
-    # ==================================================
+    try:
 
-    decision, probability = predict_loan(
+        # Machine Learning Prediction
+        decision, probability = predict_loan(
 
-        annual_income=annual_income,
-        monthly_income=monthly_income,
-        credit_score=credit_score,
-        loan_amount=loan_amount,
-        loan_duration=loan_duration,
-        total_debt_to_income=total_debt_to_income,
-        interest_rate=interest_rate,
-        base_interest_rate=base_interest_rate,
-        monthly_payment=monthly_payment,
-        total_assets=total_assets,
-        net_worth=net_worth,
-        age=age,
-        experience=experience,
-        credit_history=credit_history,
-        employment_status=employment_status,
-        education_level=education_level
-    )
-
-
-    # ==================================================
-    # SAVE APPLICATION
-    # ==================================================
-
-    save_application(
-
-        annual_income=annual_income,
-        monthly_income=monthly_income,
-        credit_score=credit_score,
-        loan_amount=loan_amount,
-        loan_duration=loan_duration,
-        total_debt_to_income=total_debt_to_income,
-        interest_rate=interest_rate,
-        base_interest_rate=base_interest_rate,
-        monthly_payment=monthly_payment,
-        total_assets=total_assets,
-        net_worth=net_worth,
-        age=age,
-        experience=experience,
-        credit_history=credit_history,
-        employment_status=employment_status,
-        education_level=education_level,
-        prediction=decision,
-        approval_probability=probability
-    )
+            annual_income=annual_income,
+            monthly_income=monthly_income,
+            credit_score=credit_score,
+            loan_amount=loan_amount,
+            loan_duration=loan_duration,
+            total_debt_to_income=total_debt_to_income,
+            interest_rate=interest_rate,
+            base_interest_rate=base_interest_rate,
+            monthly_payment=monthly_payment,
+            total_assets=total_assets,
+            net_worth=net_worth,
+            age=age,
+            experience=experience,
+            credit_history=credit_history,
+            employment_status=employment_status,
+            education_level=education_level
+        )
 
 
-    # ==================================================
-    # DISPLAY RESULT
-    # ==================================================
+        # Save application
+        save_application(
 
-    st.subheader(
-        "📊 Loan Approval Result"
-    )
+            annual_income=annual_income,
+            monthly_income=monthly_income,
+            credit_score=credit_score,
+            loan_amount=loan_amount,
+            loan_duration=loan_duration,
+            total_debt_to_income=total_debt_to_income,
+            interest_rate=interest_rate,
+            base_interest_rate=base_interest_rate,
+            monthly_payment=monthly_payment,
+            total_assets=total_assets,
+            net_worth=net_worth,
+            age=age,
+            experience=experience,
+            credit_history=credit_history,
+            employment_status=employment_status,
+            education_level=education_level,
+            prediction=decision,
+            approval_probability=probability
+        )
 
 
-    if decision == "APPROVED":
+        # Display result
+        st.subheader("📊 Loan Approval Result")
+
+
+        if decision == "APPROVED":
+
+            st.success(
+                "✅ Loan Approval Prediction: APPROVED"
+            )
+
+        else:
+
+            st.error(
+                "❌ Loan Approval Prediction: NOT APPROVED"
+            )
+
+
+        st.metric(
+            "Approval Probability",
+            f"{probability:.2f}%"
+        )
+
 
         st.success(
-            "✅ Loan Approval Prediction: APPROVED"
+            "Application saved successfully to database."
         )
 
-    else:
+
+    except Exception as error:
 
         st.error(
-            "❌ Loan Approval Prediction: NOT APPROVED"
+            f"Prediction Error: {error}"
         )
-
-
-    st.metric(
-        "Approval Probability",
-        f"{probability:.2f}%"
-    )
-
-
-    st.success(
-        "Application saved successfully to database."
-    )
 
 
 # ==================================================
@@ -308,30 +413,11 @@ if st.button(
 
 st.divider()
 
-st.subheader(
-    "📊 Dashboard Overview"
-)
+st.subheader("📊 Dashboard Overview")
 
 
-# ==================================================
-# LOAD APPLICATIONS
-# ==================================================
+applications = load_applications()
 
-connection = sqlite3.connect(
-    DATABASE_PATH
-)
-
-applications = pd.read_sql_query(
-    "SELECT * FROM loan_applications",
-    connection
-)
-
-connection.close()
-
-
-# ==================================================
-# DASHBOARD STATISTICS
-# ==================================================
 
 if applications.empty:
 
@@ -362,9 +448,7 @@ else:
     ].mean()
 
 
-    # ==================================================
-    # STATISTICS CARDS
-    # ==================================================
+    # Statistics cards
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -413,12 +497,11 @@ if not applications.empty:
         "📈 Loan Application Analysis"
     )
 
+
     chart_col1, chart_col2 = st.columns(2)
 
 
-    # ==================================================
-    # APPROVAL DISTRIBUTION
-    # ==================================================
+    # Approval Distribution
 
     with chart_col1:
 
@@ -435,9 +518,7 @@ if not applications.empty:
         )
 
 
-    # ==================================================
-    # EMPLOYMENT STATUS
-    # ==================================================
+    # Employment Status
 
     with chart_col2:
 
@@ -454,19 +535,14 @@ if not applications.empty:
         )
 
 
-    # ==================================================
-    # APPROVAL PROBABILITY
-    # ==================================================
+    # Approval Probability
 
     st.write(
         "### Approval Probability"
     )
 
     probability_data = applications[
-        [
-            "id",
-            "approval_probability"
-        ]
+        ["id", "approval_probability"]
     ].set_index("id")
 
     st.line_chart(
@@ -476,6 +552,7 @@ if not applications.empty:
 
 # ==================================================
 # CUSTOMER APPLICATIONS
+# SEARCH & FILTER
 # ==================================================
 
 st.divider()
@@ -485,34 +562,10 @@ st.subheader(
 )
 
 
-# ==================================================
-# LOAD APPLICATIONS AGAIN
-# ==================================================
-
-connection = sqlite3.connect(
-    DATABASE_PATH
-)
-
-applications = pd.read_sql_query(
-    """
-    SELECT *
-    FROM loan_applications
-    ORDER BY id DESC
-    """,
-    connection
-)
-
-connection.close()
-
-
-# ==================================================
-# SEARCH AND FILTER
-# ==================================================
-
 if applications.empty:
 
     st.info(
-        "No loan applications found."
+        "No customer applications found."
     )
 
 else:
@@ -522,16 +575,14 @@ else:
     )
 
 
-    # ==================================================
-    # FILTER ROW
-    # ==================================================
+    # --------------------------------------------------
+    # SEARCH AND FILTER CONTROLS
+    # --------------------------------------------------
 
     col1, col2, col3 = st.columns(3)
 
 
-    # ==================================================
-    # SEARCH BY ID
-    # ==================================================
+    # Search by ID
 
     with col1:
 
@@ -540,9 +591,7 @@ else:
         )
 
 
-    # ==================================================
-    # LOAN STATUS
-    # ==================================================
+    # Loan Status
 
     with col2:
 
@@ -556,9 +605,7 @@ else:
         )
 
 
-    # ==================================================
-    # EMPLOYMENT STATUS
-    # ==================================================
+    # Employment Status
 
     with col3:
 
@@ -573,9 +620,7 @@ else:
         )
 
 
-    # ==================================================
-    # EDUCATION LEVEL
-    # ==================================================
+    # Education Level
 
     education_filter = st.selectbox(
         "Education Level",
@@ -590,16 +635,14 @@ else:
     )
 
 
-    # ==================================================
+    # --------------------------------------------------
     # APPLY FILTERS
-    # ==================================================
+    # --------------------------------------------------
 
     filtered_applications = applications.copy()
 
 
-    # ==================================================
-    # SEARCH BY ID
-    # ==================================================
+    # Search by ID
 
     if search_id:
 
@@ -614,9 +657,7 @@ else:
         ]
 
 
-    # ==================================================
-    # LOAN STATUS FILTER
-    # ==================================================
+    # Loan Status
 
     if status_filter != "All":
 
@@ -626,9 +667,7 @@ else:
         ]
 
 
-    # ==================================================
-    # EMPLOYMENT FILTER
-    # ==================================================
+    # Employment Status
 
     if employment_filter != "All":
 
@@ -639,9 +678,7 @@ else:
         ]
 
 
-    # ==================================================
-    # EDUCATION FILTER
-    # ==================================================
+    # Education Level
 
     if education_filter != "All":
 
@@ -652,18 +689,14 @@ else:
         ]
 
 
-    # ==================================================
-    # FILTER RESULTS
-    # ==================================================
+    # --------------------------------------------------
+    # DISPLAY RESULTS
+    # --------------------------------------------------
 
     st.write(
         f"Showing **{len(filtered_applications)}** application(s)"
     )
 
-
-    # ==================================================
-    # CUSTOMER TABLE
-    # ==================================================
 
     st.dataframe(
         filtered_applications,
