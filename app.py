@@ -4,6 +4,7 @@ import pandas as pd
 import sys
 import os
 
+
 # ==================================================
 # PROJECT PATH
 # ==================================================
@@ -12,11 +13,15 @@ PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..")
 )
 
-# Add project root so Python can find src
 sys.path.insert(0, PROJECT_ROOT)
 
-# Import prediction function
+
+# ==================================================
+# IMPORTS
+# ==================================================
+
 from prediction import predict_loan
+from database.database import save_application
 
 
 # ==================================================
@@ -39,84 +44,6 @@ st.set_page_config(
     page_icon="🏦",
     layout="wide"
 )
-
-
-# ==================================================
-# DATABASE FUNCTION
-# ==================================================
-
-def save_application(
-    annual_income,
-    monthly_income,
-    credit_score,
-    loan_amount,
-    loan_duration,
-    total_debt_to_income,
-    interest_rate,
-    base_interest_rate,
-    monthly_payment,
-    total_assets,
-    net_worth,
-    age,
-    experience,
-    credit_history,
-    employment_status,
-    education_level,
-    prediction,
-    approval_probability
-):
-
-    connection = sqlite3.connect(DATABASE_PATH)
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        INSERT INTO loan_applications (
-            annual_income,
-            monthly_income,
-            credit_score,
-            loan_amount,
-            loan_duration,
-            total_debt_to_income,
-            interest_rate,
-            base_interest_rate,
-            monthly_payment,
-            total_assets,
-            net_worth,
-            age,
-            experience,
-            credit_history,
-            employment_status,
-            education_level,
-            prediction,
-            approval_probability
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-
-        annual_income,
-        monthly_income,
-        credit_score,
-        loan_amount,
-        loan_duration,
-        total_debt_to_income,
-        interest_rate,
-        base_interest_rate,
-        monthly_payment,
-        total_assets,
-        net_worth,
-        age,
-        experience,
-        credit_history,
-        employment_status,
-        education_level,
-        prediction,
-        approval_probability
-
-    ))
-
-    connection.commit()
-    connection.close()
 
 
 # ==================================================
@@ -290,9 +217,9 @@ if st.button(
     use_container_width=True
 ):
 
-    # --------------------------------------------------
+    # ==================================================
     # MACHINE LEARNING PREDICTION
-    # --------------------------------------------------
+    # ==================================================
 
     decision, probability = predict_loan(
 
@@ -315,9 +242,9 @@ if st.button(
     )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # SAVE APPLICATION
-    # --------------------------------------------------
+    # ==================================================
 
     save_application(
 
@@ -342,9 +269,9 @@ if st.button(
     )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # DISPLAY RESULT
-    # --------------------------------------------------
+    # ==================================================
 
     st.subheader(
         "📊 Loan Approval Result"
@@ -418,13 +345,11 @@ else:
         applications
     )
 
-
     approved_applications = len(
         applications[
             applications["prediction"] == "APPROVED"
         ]
     )
-
 
     not_approved_applications = len(
         applications[
@@ -432,15 +357,14 @@ else:
         ]
     )
 
-
     average_probability = applications[
         "approval_probability"
     ].mean()
 
 
-    # --------------------------------------------------
+    # ==================================================
     # STATISTICS CARDS
-    # --------------------------------------------------
+    # ==================================================
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -489,13 +413,12 @@ if not applications.empty:
         "📈 Loan Application Analysis"
     )
 
-
     chart_col1, chart_col2 = st.columns(2)
 
 
-    # --------------------------------------------------
+    # ==================================================
     # APPROVAL DISTRIBUTION
-    # --------------------------------------------------
+    # ==================================================
 
     with chart_col1:
 
@@ -512,9 +435,9 @@ if not applications.empty:
         )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # EMPLOYMENT STATUS
-    # --------------------------------------------------
+    # ==================================================
 
     with chart_col2:
 
@@ -531,14 +454,13 @@ if not applications.empty:
         )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # APPROVAL PROBABILITY
-    # --------------------------------------------------
+    # ==================================================
 
     st.write(
         "### Approval Probability"
     )
-
 
     probability_data = applications[
         [
@@ -546,7 +468,6 @@ if not applications.empty:
             "approval_probability"
         ]
     ].set_index("id")
-
 
     st.line_chart(
         probability_data
@@ -601,16 +522,16 @@ else:
     )
 
 
-    # --------------------------------------------------
-    # FILTER ROW 1
-    # --------------------------------------------------
+    # ==================================================
+    # FILTER ROW
+    # ==================================================
 
     col1, col2, col3 = st.columns(3)
 
 
-    # --------------------------------------------------
+    # ==================================================
     # SEARCH BY ID
-    # --------------------------------------------------
+    # ==================================================
 
     with col1:
 
@@ -619,9 +540,9 @@ else:
         )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # LOAN STATUS
-    # --------------------------------------------------
+    # ==================================================
 
     with col2:
 
@@ -635,9 +556,9 @@ else:
         )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # EMPLOYMENT STATUS
-    # --------------------------------------------------
+    # ==================================================
 
     with col3:
 
@@ -652,9 +573,9 @@ else:
         )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # EDUCATION LEVEL
-    # --------------------------------------------------
+    # ==================================================
 
     education_filter = st.selectbox(
         "Education Level",
@@ -676,9 +597,9 @@ else:
     filtered_applications = applications.copy()
 
 
-    # --------------------------------------------------
+    # ==================================================
     # SEARCH BY ID
-    # --------------------------------------------------
+    # ==================================================
 
     if search_id:
 
@@ -693,9 +614,9 @@ else:
         ]
 
 
-    # --------------------------------------------------
+    # ==================================================
     # LOAN STATUS FILTER
-    # --------------------------------------------------
+    # ==================================================
 
     if status_filter != "All":
 
@@ -705,9 +626,9 @@ else:
         ]
 
 
-    # --------------------------------------------------
+    # ==================================================
     # EMPLOYMENT FILTER
-    # --------------------------------------------------
+    # ==================================================
 
     if employment_filter != "All":
 
@@ -718,9 +639,9 @@ else:
         ]
 
 
-    # --------------------------------------------------
+    # ==================================================
     # EDUCATION FILTER
-    # --------------------------------------------------
+    # ==================================================
 
     if education_filter != "All":
 
