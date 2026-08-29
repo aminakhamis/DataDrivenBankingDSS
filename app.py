@@ -62,6 +62,10 @@ def create_database():
     connection.close()
 
 
+# ==================================================
+# SAVE APPLICATION
+# ==================================================
+
 def save_application(
     annual_income,
     monthly_income,
@@ -110,6 +114,7 @@ def save_application(
         )
 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
     """, (
         annual_income,
         monthly_income,
@@ -135,6 +140,10 @@ def save_application(
     connection.close()
 
 
+# ==================================================
+# LOAD APPLICATIONS
+# ==================================================
+
 def load_applications():
 
     connection = sqlite3.connect(DATABASE_PATH)
@@ -153,7 +162,10 @@ def load_applications():
     return data
 
 
-# Create database automatically
+# ==================================================
+# CREATE DATABASE
+# ==================================================
+
 create_database()
 
 
@@ -270,7 +282,11 @@ with col2:
         value=5.0
     )
 
-    credit_history = st.number_input(
+    # IMPORTANT:
+    # This name is changed from credit_history
+    # to length_of_credit_history
+
+    length_of_credit_history = st.number_input(
         "Length of Credit History",
         min_value=0.0,
         value=6.0
@@ -326,53 +342,95 @@ if st.button(
 
     try:
 
-        # Machine Learning Prediction
+        # ==================================================
+        # MACHINE LEARNING PREDICTION
+        # ==================================================
+
         decision, probability = predict_loan(
 
             annual_income=annual_income,
+
             monthly_income=monthly_income,
+
             credit_score=credit_score,
+
             loan_amount=loan_amount,
+
             loan_duration=loan_duration,
+
             total_debt_to_income=total_debt_to_income,
+
             interest_rate=interest_rate,
+
             base_interest_rate=base_interest_rate,
+
             monthly_payment=monthly_payment,
+
             total_assets=total_assets,
+
             net_worth=net_worth,
+
             age=age,
+
             experience=experience,
-            credit_history=credit_history,
+
+            # FIXED PARAMETER NAME
+            length_of_credit_history=length_of_credit_history,
+
             employment_status=employment_status,
+
             education_level=education_level
         )
 
 
-        # Save application
+        # ==================================================
+        # SAVE APPLICATION
+        # ==================================================
+
         save_application(
 
             annual_income=annual_income,
+
             monthly_income=monthly_income,
+
             credit_score=credit_score,
+
             loan_amount=loan_amount,
+
             loan_duration=loan_duration,
+
             total_debt_to_income=total_debt_to_income,
+
             interest_rate=interest_rate,
+
             base_interest_rate=base_interest_rate,
+
             monthly_payment=monthly_payment,
+
             total_assets=total_assets,
+
             net_worth=net_worth,
+
             age=age,
+
             experience=experience,
-            credit_history=credit_history,
+
+            credit_history=length_of_credit_history,
+
             employment_status=employment_status,
+
             education_level=education_level,
+
             prediction=decision,
+
             approval_probability=probability
         )
 
 
-        # Display result
+        # ==================================================
+        # DISPLAY RESULT
+        # ==================================================
+
         st.subheader("📊 Loan Approval Result")
 
 
@@ -427,9 +485,14 @@ if applications.empty:
 
 else:
 
+    # ==================================================
+    # STATISTICS
+    # ==================================================
+
     total_applications = len(
         applications
     )
+
 
     approved_applications = len(
         applications[
@@ -437,18 +500,22 @@ else:
         ]
     )
 
+
     not_approved_applications = len(
         applications[
             applications["prediction"] == "NOT APPROVED"
         ]
     )
 
+
     average_probability = applications[
         "approval_probability"
     ].mean()
 
 
-    # Statistics cards
+    # ==================================================
+    # STATISTICS CARDS
+    # ==================================================
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -485,11 +552,9 @@ else:
         )
 
 
-# ==================================================
-# CHARTS
-# ==================================================
-
-if not applications.empty:
+    # ==================================================
+    # CHARTS
+    # ==================================================
 
     st.divider()
 
@@ -501,7 +566,9 @@ if not applications.empty:
     chart_col1, chart_col2 = st.columns(2)
 
 
-    # Approval Distribution
+    # ==================================================
+    # APPROVAL DISTRIBUTION
+    # ==================================================
 
     with chart_col1:
 
@@ -518,7 +585,9 @@ if not applications.empty:
         )
 
 
-    # Employment Status
+    # ==================================================
+    # EMPLOYMENT STATUS
+    # ==================================================
 
     with chart_col2:
 
@@ -535,15 +604,19 @@ if not applications.empty:
         )
 
 
-    # Approval Probability
+    # ==================================================
+    # APPROVAL PROBABILITY
+    # ==================================================
 
     st.write(
         "### Approval Probability"
     )
 
+
     probability_data = applications[
         ["id", "approval_probability"]
     ].set_index("id")
+
 
     st.line_chart(
         probability_data
@@ -575,14 +648,16 @@ else:
     )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # SEARCH AND FILTER CONTROLS
-    # --------------------------------------------------
+    # ==================================================
 
     col1, col2, col3 = st.columns(3)
 
 
-    # Search by ID
+    # ==================================================
+    # SEARCH BY ID
+    # ==================================================
 
     with col1:
 
@@ -591,7 +666,9 @@ else:
         )
 
 
-    # Loan Status
+    # ==================================================
+    # LOAN STATUS
+    # ==================================================
 
     with col2:
 
@@ -605,7 +682,9 @@ else:
         )
 
 
-    # Employment Status
+    # ==================================================
+    # EMPLOYMENT STATUS
+    # ==================================================
 
     with col3:
 
@@ -620,7 +699,9 @@ else:
         )
 
 
-    # Education Level
+    # ==================================================
+    # EDUCATION LEVEL
+    # ==================================================
 
     education_filter = st.selectbox(
         "Education Level",
@@ -635,14 +716,16 @@ else:
     )
 
 
-    # --------------------------------------------------
+    # ==================================================
     # APPLY FILTERS
-    # --------------------------------------------------
+    # ==================================================
 
     filtered_applications = applications.copy()
 
 
-    # Search by ID
+    # ==================================================
+    # SEARCH BY ID
+    # ==================================================
 
     if search_id:
 
@@ -657,7 +740,9 @@ else:
         ]
 
 
-    # Loan Status
+    # ==================================================
+    # LOAN STATUS
+    # ==================================================
 
     if status_filter != "All":
 
@@ -667,31 +752,33 @@ else:
         ]
 
 
-    # Employment Status
+    # ==================================================
+    # EMPLOYMENT STATUS
+    # ==================================================
 
     if employment_filter != "All":
 
         filtered_applications = filtered_applications[
-            filtered_applications[
-                "employment_status"
-            ] == employment_filter
+            filtered_applications["employment_status"]
+            == employment_filter
         ]
 
 
-    # Education Level
+    # ==================================================
+    # EDUCATION LEVEL
+    # ==================================================
 
     if education_filter != "All":
 
         filtered_applications = filtered_applications[
-            filtered_applications[
-                "education_level"
-            ] == education_filter
+            filtered_applications["education_level"]
+            == education_filter
         ]
 
 
-    # --------------------------------------------------
+    # ==================================================
     # DISPLAY RESULTS
-    # --------------------------------------------------
+    # ==================================================
 
     st.write(
         f"Showing **{len(filtered_applications)}** application(s)"
