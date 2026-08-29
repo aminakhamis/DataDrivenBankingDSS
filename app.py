@@ -19,7 +19,7 @@ st.set_page_config(
 # DATABASE
 # ==================================================
 
-DATABASE_PATH = "database/loan_database.db"
+DATABASE_PATH = "loan_database.db"
 
 
 def create_database():
